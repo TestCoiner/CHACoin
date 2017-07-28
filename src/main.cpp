@@ -48,7 +48,7 @@ unsigned int nStakeTargetSpacing = 30;		// 30 seconds POS block spacing
 unsigned int nProofOfWorkTargetSpacing = 150; 	// 30 seconds PoW block spacing
 
 int64 nChainStartTime = 1501197480;
-int nCoinbaseMaturity = 120;
+int nCoinbaseMaturity = 20; //CHANGEMEBACK TO 120??
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 CBigNum bnBestChainTrust = 0;
