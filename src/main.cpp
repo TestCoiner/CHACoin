@@ -47,7 +47,7 @@ unsigned int nStakeMaxAge = 10000 * 10000;	// stake max age disabled
 unsigned int nStakeTargetSpacing = 30;		// 30 seconds POS block spacing
 unsigned int nProofOfWorkTargetSpacing = 150; 	// 30 seconds PoW block spacing
 
-int64 nChainStartTime = 1412878964;
+int64 nChainStartTime = 1501197480;
 int nCoinbaseMaturity = 120;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -2161,8 +2161,12 @@ bool CBlock::CheckBlock(bool fCheckPOW, bool fCheckMerkleRoot) const
         return error("CheckBlock() : coinbase output not empty for proof-of-stake block");
 
     // Check coinbase timestamp
-    if (GetBlockTime() > (int64)vtx[0].nTime + nMaxClockDrift)
+    if (GetBlockTime() > (int64)vtx[0].nTime + nMaxClockDrift){
+        cout << (int64)vtx[0].nTime + nMaxClockDrift;
+        cout << "\n";
+        cout << GetBlockTime();
         return DoS(50, error("CheckBlock() : coinbase timestamp is too early"));
+    }
 
     // Check coinstake timestamp
     if (IsProofOfStake() && !CheckCoinStakeTimestamp(GetBlockTime(), (int64)vtx[1].nTime))
@@ -2660,7 +2664,7 @@ bool LoadBlockIndex(bool fAllowNew)
         block.nVersion = 1;
         block.nTime    = 1501197480;
         block.nBits    = bnProofOfWorkLimit[ALGO_SCRYPT].GetCompact();
-        block.nNonce   = 4019728;
+        block.nNonce   = 6231087;
 
 				if(fTestNet)
 		{
@@ -2673,8 +2677,34 @@ bool LoadBlockIndex(bool fAllowNew)
            assert(block.hashMerkleRoot == uint256("0x768cc22f70bbcc4de26f83aca1b4ea2a7e25f0d100497ba47c7ff2d9b696414c"));
         }
         else {
+           //cout << block.hashMerkleRoot.ToString().c_str();
            assert(block.hashMerkleRoot == uint256("0xf6386020c22f210e2d6b396889f2a2dd8ab0ae044879b6501b84941c5a16f2b9"));
         }
+
+                   if (false  && (block.GetHash() != hashGenesisBlock)) {
+                     //This will figure out a valid hash and Nonce if you're
+                    // creating a different genesis block:
+                        CBigNum bnTarget, limit = bnProofOfWorkLimit[ALGO_SCRYPT];
+                        bnTarget.SetCompact(block.nBits);
+                        uint256 hashTarget = bnTarget.getuint256();
+                        int cur_num = 0;
+                        while (block.GetHash() > hashTarget)
+                           {
+                               if((cur_num % 100000) == 1){
+                                  cout << "\n";
+                                  cout << block.GetHash().ToString().c_str();
+                                  cout << "\n";
+                                  cout << cur_num;
+                               }
+                               ++cur_num;
+                               ++block.nNonce;
+                               if (block.nNonce == 0)
+                               {
+                                   printf("NONCE WRAPPED, incrementing time");
+                                   ++block.nTime;
+                               }
+                           }
+                    }
 
         //// debug print
 		block.print();
@@ -2684,6 +2714,7 @@ bool LoadBlockIndex(bool fAllowNew)
         printf("block.nNonce = %u \n", block.nNonce);
 		assert(block.GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
 		assert(block.CheckBlock());
+                //assert(false);
 
         // Start new block file
         unsigned int nFile;
